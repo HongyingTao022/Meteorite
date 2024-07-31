@@ -1,0 +1,788 @@
+---
+title: "Meteorite"
+author: "Hongying Tao"
+date: "2023-02-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(dplyr)
+
+meteorite_data <- read.csv("Meteorite_Landings.csv")
+
+classification_map <- list(
+"Acapulcoite" = "Achondrite Primitive",
+"Acapulcoite/lodranite" = "Achondrite Primitive",
+"Acapulcoite/Lodranite" = "Achondrite Primitive",
+"Achondrite-prim" = "Achondrite Primitive",
+"Achondrite-ung" = "Achondrite Primitive",
+"Angrite" = "Achondrite Asteroidal",
+"Aubrite" = "Achondrite Asteroidal",
+"Aubrite-an" = "Achondrite Asteroidal",
+"Brachinite" = "Achondrite Primitive",
+"C" = "Chondrite Carbonaceous",
+"C1/2-ung" = "Chondrite Carbonaceous",
+"C2" = "Chondrite Carbonaceous",
+"C2-ung" = "Chondrite Carbonaceous",
+"C3-ung" = "Chondrite Carbonaceous",
+"C3.0-ung" = "Chondrite Carbonaceous",
+"C4" = "Chondrite Carbonaceous",
+"C4-ung" = "Chondrite Carbonaceous",
+"C4/5" = "Chondrite Carbonaceous",
+"C5/6-ung" = "Chondrite Carbonaceous",
+"C6" = "Chondrite Carbonaceous",
+"CB" = "Chondrite Carbonaceous",
+"CBa" = "Chondrite Carbonaceous",
+"CBb" = "Chondrite Carbonaceous",
+"CH/CBb" = "Chondrite Carbonaceous",
+"CH3" = "Chondrite Carbonaceous",
+"Chondrite-fusion crust" = "Chondrite Carbonaceous",
+"Chondrite-ung" = "Chondrite Carbonaceous",
+"CI1" = "Chondrite Carbonaceous",
+"CK" = "Chondrite Carbonaceous",
+"CK3" = "Chondrite Carbonaceous",
+"CK3-an" = "Chondrite Carbonaceous",
+"CK4" = "Chondrite Carbonaceous",
+"CK4-an" = "Chondrite Carbonaceous",
+"CK4/5" = "Chondrite Carbonaceous",
+"CK5" = "Chondrite Carbonaceous",
+"CK5/6" = "Chondrite Carbonaceous",
+"CK6" = "Chondrite Carbonaceous",
+"CM" = "Chondrite Carbonaceous",
+"CM-an" = "Chondrite Carbonaceous",
+"CM1" = "Chondrite Carbonaceous",
+"CM1/2" = "Chondrite Carbonaceous",
+"CM2" = "Chondrite Carbonaceous",
+"CO3" = "Chondrite Carbonaceous",
+"CO3.0" = "Chondrite Carbonaceous",
+"CO3.1" = "Chondrite Carbonaceous",
+"CO3.2" = "Chondrite Carbonaceous",
+"CO3.3" = "Chondrite Carbonaceous",
+"CO3.4" = "Chondrite Carbonaceous",
+"CO3.5" = "Chondrite Carbonaceous",
+"CO3.6" = "Chondrite Carbonaceous",
+"CO3.7" = "Chondrite Carbonaceous",
+"CO3.8" = "Chondrite Carbonaceous",
+"CR" = "Chondrite Carbonaceous",
+"CR-an" = "Chondrite Carbonaceous",
+"CR1" = "Chondrite Carbonaceous",
+"CR2" = "Chondrite Carbonaceous",
+"CR2-an" = "Chondrite Carbonaceous",
+"CR7" = "Chondrite Carbonaceous",
+"CV2" = "Chondrite Carbonaceous",
+"CV3" = "Chondrite Carbonaceous",
+"CV3-an" = "Chondrite Carbonaceous",
+"Diogenite" = "Achondrite Asteroidal",
+"Diogenite-an" = "Achondrite Asteroidal",
+"Diogenite-olivine" = "Achondrite Asteroidal",
+"Diogenite-pm" = "Achondrite Asteroidal",
+"E" = "Chondrite Enstatite",
+"E-an" = "Chondrite Enstatite",
+"E3" = "Chondrite Enstatite",
+"E3-an" = "Chondrite Enstatite",
+"E4" = "Chondrite Enstatite",
+"E5" = "Chondrite Enstatite",
+"E5-an" = "Chondrite Enstatite",
+"E6" = "Chondrite Enstatite",
+"EH" = "Chondrite Enstatite",
+"EH-imp melt" = "Chondrite Enstatite",
+"EH3" = "Chondrite Enstatite",
+"EH3/4-an" = "Chondrite Enstatite",
+"EH4" = "Chondrite Enstatite",
+"EH4/5" = "Chondrite Enstatite",
+"EH5" = "Chondrite Enstatite",
+"EH6" = "Chondrite Enstatite",
+"EH6-an" = "Chondrite Enstatite",
+"EH7" = "Chondrite Enstatite",
+"EH7-an" = "Chondrite Enstatite",
+"EL-melt rock" = "Chondrite Enstatite",
+"EL3" = "Chondrite Enstatite",
+"EL4" = "Chondrite Enstatite",
+"EL4/5" = "Chondrite Enstatite",
+"EL5" = "Chondrite Enstatite",
+"EL6" = "Chondrite Enstatite",
+"EL6/7" = "Chondrite Enstatite",
+"EL7" = "Chondrite Enstatite",
+"Enst achon-ung" = "Chondrite Enstatite",
+"Eucrite" = "Achondrite Asteroidal",
+"Eucrite-an" = "Achondrite Asteroidal",
+"Eucrite-br" = "Achondrite Asteroidal",
+"Eucrite-cm" = "Achondrite Asteroidal",
+"Eucrite-Mg rich" = "Achondrite Asteroidal",
+"Eucrite-mmict" = "Achondrite Asteroidal",
+"Eucrite-pmict" = "Achondrite Asteroidal",
+"Eucrite-unbr" = "Achondrite Asteroidal",
+"Fusion crust" = "Chondrite Carbonaceous",
+"H" = "Chondrite Ordinary",
+"H-an" = "Chondrite Ordinary",
+"H-imp melt" = "Chondrite Ordinary",
+"H-melt breccia" = "Chondrite Ordinary",
+"H-melt rock" = "Chondrite Ordinary",
+"H-metal" = "Chondrite Ordinary",
+"H?" = "Chondrite Ordinary",
+"H(?)4" = "Chondrite Ordinary",
+"H(5?)" = "Chondrite Ordinary",
+"H(L)3" = "Chondrite Ordinary",
+"H(L)3-an" = "Chondrite Ordinary",
+"H/L~4" = "Chondrite Ordinary",
+"H/L3" = "Chondrite Ordinary",
+"H/L3.5" = "Chondrite Ordinary",
+"H/L3.6" = "Chondrite Ordinary",
+"H/L3.9" = "Chondrite Ordinary",
+"H/L4" = "Chondrite Ordinary",
+"H/L4-5" = "Chondrite Ordinary",
+"H/L5" = "Chondrite Ordinary",
+"H/L6" = "Chondrite Ordinary",
+"H~4" = "Chondrite Ordinary",
+"H~4/5" = "Chondrite Ordinary",
+"H~5" = "Chondrite Ordinary",
+"H~6" = "Chondrite Ordinary",
+"H3" = "Chondrite Ordinary",
+"H3 " = "Chondrite Ordinary",
+"H3-4" = "Chondrite Ordinary",
+"H3-5" = "Chondrite Ordinary",
+"H3-6" = "Chondrite Ordinary",
+"H3-an" = "Chondrite Ordinary",
+"H3.0" = "Chondrite Ordinary",
+"H3.0-3.4" = "Chondrite Ordinary",
+"H3.05" = "Chondrite Ordinary",
+"H3.1" = "Chondrite Ordinary",
+"H3.10" = "Chondrite Ordinary",
+"H3.2" = "Chondrite Ordinary",
+"H3.2-3.7" = "Chondrite Ordinary",
+"H3.2-6" = "Chondrite Ordinary",
+"H3.2-an" = "Chondrite Ordinary",
+"H3.3" = "Chondrite Ordinary",
+"H3.4" = "Chondrite Ordinary",
+"H3.4-5" = "Chondrite Ordinary",
+"H3.4/3.5" = "Chondrite Ordinary",
+"H3.5" = "Chondrite Ordinary",
+"H3.5-4" = "Chondrite Ordinary",
+"H3.6" = "Chondrite Ordinary",
+"H3.6-6" = "Chondrite Ordinary",
+"H3.7" = "Chondrite Ordinary",
+"H3.7-5" = "Chondrite Ordinary",
+"H3.7-6" = "Chondrite Ordinary",
+"H3.7/3.8" = "Chondrite Ordinary",
+"H3.8" = "Chondrite Ordinary",
+"H3.8-4" = "Chondrite Ordinary",
+"H3.8-5" = "Chondrite Ordinary",
+"H3.8-6" = "Chondrite Ordinary",
+"H3.8-an" = "Chondrite Ordinary",
+"H3.8/3.9" = "Chondrite Ordinary",
+"H3.8/4" = "Chondrite Ordinary",
+"H3.9" = "Chondrite Ordinary",
+"H3.9-5" = "Chondrite Ordinary",
+"H3.9-6" = "Chondrite Ordinary",
+"H3.9/4" = "Chondrite Ordinary",
+"H3/4" = "Chondrite Ordinary",
+"H4" = "Chondrite Ordinary",
+"H4 " = "Chondrite Ordinary",
+"H4-5" = "Chondrite Ordinary",
+"H4-6" = "Chondrite Ordinary",
+"H4-an" = "Chondrite Ordinary",
+"H4-melt breccia" = "Chondrite Ordinary",
+"H4(?)" = "Chondrite Ordinary",
+"H4/5" = "Chondrite Ordinary",
+"H4/6" = "Chondrite Ordinary",
+"H5" = "Chondrite Ordinary",
+"H5 " = "Chondrite Ordinary",
+"H5-6" = "Chondrite Ordinary",
+"H5-7" = "Chondrite Ordinary",
+"H5-an" = "Chondrite Ordinary",
+"H5-melt breccia" = "Chondrite Ordinary",
+"H5/6" = "Chondrite Ordinary",
+"H6" = "Chondrite Ordinary",
+"H6 " = "Chondrite Ordinary",
+"H6-melt breccia" = "Chondrite Ordinary",
+"H7" = "Chondrite Ordinary",
+"Howardite" = "Achondrite Asteroidal",
+"Howardite-an" = "Achondrite Asteroidal",
+"Iron" = "Iron",
+"Iron, IAB comple\"" = "Iron",
+"Iron, IAB-an" = "Iron",
+"Iron, IAB-MG" = "Iron",
+"Iron, IAB-sHH" = "Iron",
+"Iron, IAB-sHL" = "Iron",
+"Iron, IAB-sHL-an" = "Iron",
+"Iron, IAB-sLH" = "Iron",
+"Iron, IAB-sLL" = "Iron",
+"Iron, IAB-sLM" = "Iron",
+"Iron, IAB-ung" = "Iron",
+"Iron, IAB?" = "Iron",
+"Iron, IC" = "Iron",
+"Iron, IC-an" = "Iron",
+"Iron, IIAB" = "Iron",
+"Iron, IIAB-an" = "Iron",
+"Iron, IIC" = "Iron",
+"Iron, IID" = "Iron",
+"Iron, IID-an" = "Iron",
+"Iron, IIE" = "Iron",
+"Iron, IIE-an" = "Iron",
+"Iron, IIF" = "Iron",
+"Iron, IIG" = "Iron",
+"Iron, IIIAB" = "Iron",
+"Iron, IIIAB-an" = "Iron",
+"Iron, IIIAB?" = "Iron",
+"Iron, IIIE" = "Iron",
+"Iron, IIIE-an" = "Iron",
+"Iron, IIIF" = "Iron",
+"Iron, IVA" = "Iron",
+"Iron, IVA-an" = "Iron",
+"Iron, IVB" = "Iron",
+"Iron, ungrouped" = "Iron",
+"K" = "Chondrite Kakangari",
+"K3" = "Chondrite Kakangari",
+"L" = "Chondrite Ordinary",
+"L-imp melt" = "Chondrite Ordinary",
+"L-melt breccia" = "Chondrite Ordinary",
+"L-melt rock" = "Chondrite Ordinary",
+"L-metal" = "Chondrite Ordinary",
+"L(?)3" = "Chondrite Ordinary",
+"L(LL)3" = "Chondrite Ordinary",
+"L(LL)3.05" = "Chondrite Ordinary",
+"L(LL)3.5-3.7" = "Chondrite Ordinary",
+"L(LL)5" = "Chondrite Ordinary",
+"L(LL)6" = "Chondrite Ordinary",
+"L/LL" = "Chondrite Ordinary",
+"L/LL(?)3" = "Chondrite Ordinary",
+"L/LL~4" = "Chondrite Ordinary",
+"L/LL~5" = "Chondrite Ordinary",
+"L/LL~6" = "Chondrite Ordinary",
+"L/LL3" = "Chondrite Ordinary",
+"L/LL3-5" = "Chondrite Ordinary",
+"L/LL3-6" = "Chondrite Ordinary",
+"L/LL3.10" = "Chondrite Ordinary",
+"L/LL3.2" = "Chondrite Ordinary",
+"L/LL3.4" = "Chondrite Ordinary",
+"L/LL3.6/3.7" = "Chondrite Ordinary",
+"L/LL4" = "Chondrite Ordinary",
+"L/LL4-6" = "Chondrite Ordinary",
+"L/LL4/5" = "Chondrite Ordinary",
+"L/LL5" = "Chondrite Ordinary",
+"L/LL5-6" = "Chondrite Ordinary",
+"L/LL5/6" = "Chondrite Ordinary",
+"L/LL6" = "Chondrite Ordinary",
+"L/LL6-an" = "Chondrite Ordinary",
+"L~3" = "Chondrite Ordinary",
+"L~4" = "Chondrite Ordinary",
+"L~4-6" = "Chondrite Ordinary",
+"L~5" = "Chondrite Ordinary",
+"L~6" = "Chondrite Ordinary",
+"L3" = "Chondrite Ordinary",
+"L3-4" = "Chondrite Ordinary",
+"L3-5" = "Chondrite Ordinary",
+"L3-6" = "Chondrite Ordinary",
+"L3-melt breccia" = "Chondrite Ordinary",
+"L3.0" = "Chondrite Ordinary",
+"L3.0-3.7" = "Chondrite Ordinary",
+"L3.0-3.9" = "Chondrite Ordinary",
+"L3.00" = "Chondrite Ordinary",
+"L3.05" = "Chondrite Ordinary",
+"L3.1" = "Chondrite Ordinary",
+"L3.10" = "Chondrite Ordinary",
+"L3.2" = "Chondrite Ordinary",
+"L3.2-3.5" = "Chondrite Ordinary",
+"L3.2-3.6" = "Chondrite Ordinary",
+"L3.3" = "Chondrite Ordinary",
+"L3.3-3.5" = "Chondrite Ordinary",
+"L3.3-3.6" = "Chondrite Ordinary",
+"L3.3-3.7" = "Chondrite Ordinary",
+"L3.4" = "Chondrite Ordinary",
+"L3.4-3.7" = "Chondrite Ordinary",
+"L3.5" = "Chondrite Ordinary",
+"L3.5-3.7" = "Chondrite Ordinary",
+"L3.5-3.8" = "Chondrite Ordinary",
+"L3.5-3.9" = "Chondrite Ordinary",
+"L3.5-5" = "Chondrite Ordinary",
+"L3.6" = "Chondrite Ordinary",
+"L3.6-4" = "Chondrite Ordinary",
+"L3.7" = "Chondrite Ordinary",
+"L3.7-3.9" = "Chondrite Ordinary",
+"L3.7-4" = "Chondrite Ordinary",
+"L3.7-6" = "Chondrite Ordinary",
+"L3.7/3.8" = "Chondrite Ordinary",
+"L3.8" = "Chondrite Ordinary",
+"L3.8-6" = "Chondrite Ordinary",
+"L3.8-an" = "Chondrite Ordinary",
+"L3.9" = "Chondrite Ordinary",
+"L3.9-5" = "Chondrite Ordinary",
+"L3.9-6" = "Chondrite Ordinary",
+"L3.9/4" = "Chondrite Ordinary",
+"L3/4" = "Chondrite Ordinary",
+"L4" = "Chondrite Ordinary",
+"L4 " = "Chondrite Ordinary",
+"L4-5" = "Chondrite Ordinary",
+"L4-6" = "Chondrite Ordinary",
+"L4-an" = "Chondrite Ordinary",
+"L4-melt breccia" = "Chondrite Ordinary",
+"L4/5" = "Chondrite Ordinary",
+"L5" = "Chondrite Ordinary",
+"L5 " = "Chondrite Ordinary",
+"L5-6" = "Chondrite Ordinary",
+"L5-7" = "Chondrite Ordinary",
+"L5-melt breccia" = "Chondrite Ordinary",
+"L5/6" = "Chondrite Ordinary",
+"L6" = "Chondrite Ordinary",
+"L6 " = "Chondrite Ordinary",
+"L6-melt breccia" = "Chondrite Ordinary",
+"L6/7" = "Chondrite Ordinary",
+"L7" = "Chondrite Ordinary",
+"LL" = "Chondrite Ordinary",
+"LL-imp melt" = "Chondrite Ordinary",
+"LL-melt breccia" = "Chondrite Ordinary",
+"LL-melt rock" = "Chondrite Ordinary",
+"LL(L)3" = "Chondrite Ordinary",
+"LL~3" = "Chondrite Ordinary",
+"LL~5" = "Chondrite Ordinary",
+"LL~6" = "Chondrite Ordinary",
+"LL3" = "Chondrite Ordinary",
+"LL3-5" = "Chondrite Ordinary",
+"LL3-6" = "Chondrite Ordinary",
+"LL3.0" = "Chondrite Ordinary",
+"LL3.00" = "Chondrite Ordinary",
+"LL3.05" = "Chondrite Ordinary",
+"LL3.1" = "Chondrite Ordinary",
+"LL3.1-3.5" = "Chondrite Ordinary",
+"LL3.15" = "Chondrite Ordinary",
+"LL3.2" = "Chondrite Ordinary",
+"LL3.3" = "Chondrite Ordinary",
+"LL3.4" = "Chondrite Ordinary",
+"LL3.5" = "Chondrite Ordinary",
+"LL3.6" = "Chondrite Ordinary",
+"LL3.7" = "Chondrite Ordinary",
+"LL3.7-6" = "Chondrite Ordinary",
+"LL3.8" = "Chondrite Ordinary",
+"LL3.8-4" = "Chondrite Ordinary",
+"LL3.8-6" = "Chondrite Ordinary",
+"LL3.9" = "Chondrite Ordinary",
+"LL3.9/4" = "Chondrite Ordinary",
+"LL3/4" = "Chondrite Ordinary",
+"LL4" = "Chondrite Ordinary",
+"LL4-5" = "Chondrite Ordinary",
+"LL4-6" = "Chondrite Ordinary",
+"LL4/5" = "Chondrite Ordinary",
+"LL5" = "Chondrite Ordinary",
+"LL5-6" = "Chondrite Ordinary",
+"LL5-7" = "Chondrite Ordinary",
+"LL5/6" = "Chondrite Ordinary",
+"LL6" = "Chondrite Ordinary",
+"LL6 " = "Chondrite Ordinary",
+"LL6-an" = "Chondrite Ordinary",
+"LL6-melt breccia" = "Chondrite Ordinary",
+"LL6(?)" = "Chondrite Ordinary",
+"LL7" = "Chondrite Ordinary",
+"LL7(?)" = "Chondrite Ordinary",
+"Lodranite" = "Achondrite Primitive",
+"Lodranite-an" = "Achondrite Primitive",
+"Lunar" = "Achondrite Lunar",
+"Lunar (anorth)" = "Achondrite Lunar",
+"Lunar (bas. breccia)" = "Achondrite Lunar",
+"Lunar (bas/anor)" = "Achondrite Lunar",
+"Lunar (basalt)" = "Achondrite Lunar",
+"Lunar (feldsp. breccia)" = "Achondrite Lunar",
+"Lunar (gabbro)" = "Achondrite Lunar",
+"Lunar (norite)" = "Achondrite Lunar",
+"Martian (basaltic breccia)" = "Achondrite Martian",
+"Martian (chassignite)" = "Achondrite Martian",
+"Martian (nakhlite)" = "Achondrite Martian",
+"Martian (OP\")" = "Achondrite Martian",
+"Martian (shergottite)" = "Achondrite Martian",
+"Mesosiderite" = "Stony-iron",
+"Mesosiderite-A" = "Stony-iron",
+"Mesosiderite-A1" = "Stony-iron",
+"Mesosiderite-A2" = "Stony-iron",
+"Mesosiderite-A3" = "Stony-iron",
+"Mesosiderite-A3/4" = "Stony-iron",
+"Mesosiderite-A4" = "Stony-iron",
+"Mesosiderite-an" = "Stony-iron",
+"Mesosiderite-B" = "Stony-iron",
+"Mesosiderite-B1" = "Stony-iron",
+"Mesosiderite-B2" = "Stony-iron",
+"Mesosiderite-B4" = "Stony-iron",
+"Mesosiderite-C" = "Stony-iron",
+"Mesosiderite-C2" = "Stony-iron",
+"Mesosiderite?" = "Stony-iron",
+"OC" = "Chondrite Ordinary",
+"Pallasite" = "Stony-iron",
+"Pallasite, PES" = "Stony-iron",
+"Pallasite, PMG" = "Stony-iron",
+"Pallasite, PMG-an" = "Stony-iron",
+"Pallasite, ungrouped" = "Stony-iron",
+"Pallasite?" = "Stony-iron",
+"R" = "Chondrite Rumurutti",
+"R3" = "Chondrite Rumurutti",
+"R3-4" = "Chondrite Rumurutti",
+"R3-5" = "Chondrite Rumurutti",
+"R3-6" = "Chondrite Rumurutti",
+"R3.5-4" = "Chondrite Rumurutti",
+"R3.5-6" = "Chondrite Rumurutti",
+"R3.6" = "Chondrite Rumurutti",
+"R3.8" = "Chondrite Rumurutti",
+"R3.8-5" = "Chondrite Rumurutti",
+"R3.8-6" = "Chondrite Rumurutti",
+"R3.9" = "Chondrite Rumurutti",
+"R4" = "Chondrite Rumurutti",
+"R5" = "Chondrite Rumurutti",
+"R6" = "Chondrite Rumurutti",
+"Relict iron" = "Iron",
+"Relict OC" = "Chondrite Ordinary",
+"Ureilite" = "Achondrite Primitive",
+"Ureilite-an" = "Achondrite Primitive",
+"Ureilite-pmict" = "Achondrite Primitive",
+"Winonaite" = "Achondrite Primitive"
+)
+
+library(dplyr)
+library(tidyverse)
+
+md <- meteorite_data %>%
+  na.omit() %>%
+  rename(mass = mass..g.) %>%
+  mutate(classification_type = classification_map[recclass]) %>%
+  unnest(cols = c(classification_type)) %>%
+  mutate(classification = str_split(classification_type, " ", simplify = TRUE)[, 1]) %>%
+  filter(mass > 1) %>%
+  mutate(classification_type = ifelse(classification_type == "Chondrite Ordinary" & 
+                                        str_detect(recclass, "^(LL|L|H)"), 
+                                      paste0(classification_type, " ", str_extract(recclass, "^(LL|H|L)")), 
+                                      classification_type))
+
+```
+Histogram of meteorite mass distribution:
+```{r}
+ggplot(md, aes(x = mass)) +
+  geom_histogram(binwidth = 0.1, fill = "dodgerblue3") +
+  scale_x_log10(breaks = 10^(1:7), labels = scales::comma) +
+  labs(title = "Meteorite Mass Distribution",
+       x = expression(paste("Mass (log scale)")),
+       y = "Number of Meteorites")
+
+ggplot(md, aes(x = mass)) +
+  geom_histogram(binwidth = 0.1, fill = "dodgerblue3") +
+  scale_x_log10(breaks = 10^(1:7), labels = scales::comma) +
+  labs(title = "Meteorite Mass Distribution",
+       x = expression(paste("Mass (log scale)")),
+       y = "Number of Meteorites",) +
+  theme(panel.background = element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_line(color = "gray80", size = 0.2)) 
+
+ggplot(md, aes(x = mass, fill = classification)) +
+  geom_density(alpha = 0.5) +
+  scale_x_log10(breaks = 10^(1:7), labels = scales::comma) +
+  labs(x = expression(paste("Mass (log scale)")),
+       y = "Density",
+       fill = "Classification") +
+  theme(panel.background = element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_line(color = "gray80", size = 0.2),
+        legend.position = "bottom",
+        legend.box = "horizontal")
+
+
+
+```
+
+```{r}
+ggplot(md, aes(x = fall)) +
+  geom_bar(fill = "dodgerblue3") +
+  labs(title = "Meteorite - Fell vs Found",
+       x = "Fell vs Found",
+       y = "Number of Meteorites")
+
+ggplot(md, aes(x = fall)) +
+  geom_bar(fill = "dodgerblue3") +
+  geom_text(stat = 'count', aes(label=..count..), vjust = -0.5, size = 3.5) +
+  labs(title = "Meteorite - Fell vs Found",
+       x = "Fell vs Found",
+       y = "Number of Meteorites") +
+  theme(axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA))
+
+ggplot(md, aes(x = fall, fill = ifelse(fall == "Fell", "dodgerblue3", "pink"))) +
+  geom_bar() +
+  geom_text(stat = 'count', aes(label=..count..), vjust = -0.5, size = 3.5) +
+  labs(x = "Fell vs Found",
+       y = "Number of Meteorites") +
+  theme(axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA))
+
+
+
+```
+Time series plot of meteorite discoveries per year:
+```{r}
+md_after_1900 <- md %>%
+  filter(year > 1970 & year < 2012)
+
+ggplot(md_after_1900, aes(x = year, group = 1)) +
+  geom_line(stat = "count", color = "forestgreen") +
+  labs(title = "Meteorite Discoveries per Year (after 1970)",
+       x = "Year",
+       y = "Number of Discoveries")
+
+
+md_after_1900 <- md %>%
+  filter(year > 1970 & year < 2012)
+
+ggplot(md_after_1900, aes(x = year, group = 1)) +
+  geom_line(stat = "count", color = "forestgreen") +
+  labs(title = "Meteorite Discoveries per Year (after 1970)",
+       x = "Year",
+       y = "Number of Discoveries") +
+  theme_bw() +
+  theme(panel.grid.major = element_line(color = "gray80", size = 0.2),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+```
+Bar plot of the top 10 most common meteorite classifications:
+```{r}
+top_7_classification_type <- md %>%
+  count(classification_type, sort = TRUE) %>%
+  top_n(7)
+
+ggplot(top_7_classification_type, aes(x = reorder(classification_type, -n), y = n, fill = classification_type)) +
+  geom_bar(stat = "identity") +
+  labs(title = " ",
+       x = NULL, # Remove the x-axis label
+       y = "Count") +
+  theme(legend.position = "right",
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  guides(fill = guide_legend(title = "Classification Type"))
+
+top_7_classification_type <- md %>%
+  count(classification_type, sort = TRUE) %>%
+  top_n(7)
+
+ggplot(top_7_classification_type, aes(x = reorder(classification_type, -n), y = n, fill = classification_type)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = n), vjust = -0.5, size = 3.5) + # Add the text labels
+  labs(x = NULL, # Remove the x-axis label
+       y = "Count") +
+  theme(legend.position = "right",
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  guides(fill = guide_legend(title = "Classification Type"))
+
+```
+Map of meteorite impact locations:
+```{r}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggplot2)
+
+# Get the world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Plot meteorite impact locations on the map
+ggplot() +
+  geom_sf(data = world, fill = "gray80") +
+  geom_point(data = md, aes(x = reclong, y = reclat),
+             alpha = 0.5, color = "red", size = 0.5) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  labs(title = "Meteorite Impact Locations",
+       x = "Longitude",
+       y = "Latitude")
+
+# Get the world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Plot meteorite impact locations on the map
+ggplot() +
+  geom_sf(data = world) +
+  geom_point(data = md, aes(x = reclong, y = reclat),
+             alpha = 0.5, color = "red", size = 0.5) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  labs(title = "Meteorite Impact Locations",
+       x = "Longitude",
+       y = "Latitude") +
+  theme_bw() +
+  theme(panel.grid.major = element_line(color = "gray80", size = 0.2),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+ggplot() +
+  geom_sf(data = world) +
+  geom_point(data = md, aes(x = reclong, y = reclat, color = fall),
+             alpha = 0.5, size = 0.5) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  labs(x = "Longitude",
+       y = "Latitude") +
+  theme_bw() +
+  theme(panel.grid.major = element_line(color = "gray80", size = 0.2),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+Ct <- md %>% group_by(reclat, reclong, fall) %>%
+  summarize(count = n())
+
+ggplot() +
+  geom_sf(data = world) +
+  geom_point(data = Ct, aes(x = reclong, y = reclat, color = fall, size = count), alpha = 0.5, shape = 21) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  labs(x = "Longitude",
+       y = "Latitude") +
+  theme_bw() +
+  theme(panel.grid.major = element_line(color = "gray80", size = 0.2),
+        panel.border = element_blank(),
+        panel.background = element_blank())
+
+ggplot() +
+  geom_sf(data = world) +
+  geom_point(data = Ct, aes(x = reclong, y = reclat, color = fall, size = count), alpha = 0.5, shape = 21) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  labs(x = "Longitude",
+       y = "Latitude") +
+  theme_bw() +
+  theme(panel.grid.major = element_line(color = "gray80", size = 0.2),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        aspect.ratio = 6/16)
+
+
+
+```
+
+```{r}
+# Load necessary libraries
+library(sp)
+library(rgeos)
+library(sf)
+library(rgdal)
+library(ggplot2)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Get the world countries data
+world_sp <- ne_countries(scale = "medium", returnclass = "sp")
+
+# Convert md to data.frame
+md <- as.data.frame(md)
+
+# Create a SpatialPointsDataFrame from md
+coordinates(md) <- ~reclong + reclat
+proj4string(md) <- CRS("+proj=longlat +datum=WGS84")
+
+# Match meteorite locations with countries
+md$country <- over(md, world_sp)$sovereignt
+
+# Convert back to tibble if needed
+md <- as_tibble(md)
+
+# Calculate the number of impacts per country
+impact_count_by_country <- as.data.frame(table(md$country))
+
+# Rename columns
+colnames(impact_count_by_country) <- c("country", "impact_count")
+
+# Sort the data by the impact count
+impact_count_by_country <- impact_count_by_country[order(-impact_count_by_country$impact_count), ]
+
+# Get the top 10 countries
+top_10_countries <- head(impact_count_by_country, 10)
+
+# Create a bar plot
+bar_plot <- ggplot(top_10_countries, aes(x = reorder(country, -impact_count), y = impact_count)) +
+  geom_bar(stat = "identity", fill = "dodgerblue3") +
+  labs(title = "Top 10 Countries by Meteorite Impact Count",
+       x = "Country",
+       y = "Number of Impacts") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+bar_plot
+
+bar_plot <- ggplot(top_10_countries, aes(x = reorder(country, -impact_count), y = impact_count)) +
+  geom_bar(stat = "identity", fill = "dodgerblue3") +
+  geom_text(aes(label = impact_count), vjust = -0.5, size = 3.5) +
+  labs(title = "Top 10 Countries by Meteorite Impact Count",
+       x = "Country",
+       y = "Number of Impacts") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background = element_rect(fill = "transparent", colour = NA)) +
+  scale_x_discrete(breaks = top_10_countries$country, 
+                   labels = top_10_countries$country)
+bar_plot
+
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(md, aes(x=as.factor(classification), y=log(mass))) + 
+    geom_boxplot(fill="dodgerblue3") + 
+    xlab("Classification Type") +
+    ylab("Mass") +
+  labs(title = "Mass Distribution by Classification")
+
+ggplot(md, aes(x=as.factor(classification), y=log(mass))) + 
+  geom_boxplot(fill="dodgerblue3") + 
+  xlab("Classification Type") +
+  ylab("Mass") +
+  labs(title = "Mass Distribution by Classification") +
+  theme(panel.background = element_blank(),
+        panel.grid.major = element_line(color = "gray70", size = 0.2),
+        panel.border = element_blank(),
+        axis.line = element_blank(),
+        axis.line.x = element_blank(),
+        axis.line.y = element_blank())
+
+```
+
+```{r}
+md_mass_by_year <- md %>%
+  filter(year < 2023) %>%
+  filter(year > 1900)
+
+md_mass_by_year$mass <- round(md_mass_by_year$mass / 1000, 2)
+
+ggplot(md_mass_by_year, aes(x = year, y = mass, color = classification)) + 
+  geom_point() +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
+  labs(x = "Year", y = "Mass (kg)", title = "Meteorites Impacts by Mass & Year") +
+  theme(
+    legend.position = "bottom", 
+    legend.box = "horizontal" 
+  )
+
+mass_under1000 <- md_mass_by_year %>% filter(mass <= 1000)
+
+ggplot(mass_under1000, aes(x = year, y = mass, color = classification)) + 
+  geom_point() +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
+  labs(x = "Year", y = "Mass (kg)", title = "Meteorites Impacts by Mass & Year (Mass under 1000kg)")
+
+mass_over1000 <- md_mass_by_year %>% filter(mass > 1000)
+
+ggplot(mass_over1000, aes(x = year, y = mass, color = classification)) + 
+  geom_point() +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))+
+  labs(x = "Year", y = "Mass (kg)", title = "Meteorites Impacts by Mass & Year (Mass over 1000kg)")
+
+```
